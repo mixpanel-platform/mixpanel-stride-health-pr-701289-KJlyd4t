@@ -188,11 +188,11 @@
         //   $("#by").show();
         //   runQuery();
         // });
-        // eventSelectTwo.on('change', function(e, eventNameTwo) {
-        //   propSelectTwo.MPPropertySelect('setEvent', eventNameTwo);
-        //   $("#byTwo").show();
-        //   runQuery();
-        // });
+        eventSelectTwo.on('change', function(e, eventNameTwo) {
+          propSelectTwo.MPPropertySelect('setEvent', eventNameTwo);
+          $("#byTwo").show();
+          runQuery();
+        });
         propSelectTwo.on('change', runQuery);
         dateSelect.on('change', runQuery);
         typeSelect.on('change', runQuery);
