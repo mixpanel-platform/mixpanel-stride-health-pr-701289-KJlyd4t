@@ -7,9 +7,196 @@
     <script src="https://cdn.mxpnl.com/libs/mixpanel-platform/build/mixpanel-platform.v0.latest.min.js"></script>
   </head>
   <body class="mixpanel-platform-body">
-    <h1>Hello, World!</h1>
+    <div class="mixpanel-platform-section">
+      <div class="titles">
+        <h1 style="font-size: 18px; color: rgb(95,105,131)">Segment Your Purchase Ratio</h1><br/>
+      </div><br/>
+      
+      <div id="eventSelect" style="float: left;"></div>
+      <div id="dateSelect" style="float: right;"></div><br/><br/>
+
+      <div class="confirmation">
+        <p class="confirm-text" style="color: rgb(95,105,131); font-size: 15px"></p>
+      </div><br/><br/>
+      
+      <div id="eventSelectTwo" style="float: left;"></div>
+      <div id="byTwo" class="mixpanel-platform-label" style="margin-left: 10px; display: none;">by</div>
+      <div id="propSelectTwo" style="float: left;"></div>
+
+    
+      <div class="confirmation">
+        <p class="confirm-textTwo" style="color: rgb(95,105,131); font-size: 15px"></p>
+      </div>
+      
+      <div id="mpselect" style="float: right;"></div><br/><br/><br/>
+      <div style="clear: both;"></div>
+
+    </div>
+    <!-- Ratio -->
+    <div class="description" style="text-align:center; margin-bottom: 10px;">
+        <p class="numerator" style="font-size:18px; font-family: Helvetica;"></p>
+        <hr style="width:200px;">
+        <p class="denominator" style="font-size:18px; font-family: Helvetica;"></p>
+    </div>
+    <div id="table"></div>
     <script>
-      // Run queries and display results here
+
+      MP.api.ready(function() {
+        
+        var options = {
+          items: [
+            {label: 'Total', value: 'general'},
+            {label: 'Unique', value: 'unique'},
+            {label: 'Average', value: 'average'}
+            ]
+        };
+
+        var eventSelect = $('#eventSelect').MPEventSelect();
+        var eventSelectTwo = $('#eventSelectTwo').MPEventSelect();
+        var propSelect  = $('#propSelect').MPPropertySelect();
+        var propSelectTwo  = $('#propSelectTwo').MPPropertySelect();
+        var propValue = '';
+        var propValueTwo = '';
+        var dateSelect  = $('#dateSelect').MPDatepicker();
+        var dateSelectTwo  = $('#dateSelectTwo').MPDatepicker();
+        var typeSelect  = $('#mpselect').MPSelect(options);
+        var eventGraph  = $('#graph').MPChart({chartType: 'line'});
+        var eventGraphTwo  = $('#graphTwo').MPChart({chartType: 'bar'});
+        var eventGraphThree  = $('#graphThree').MPChart({chartType: 'pie'});
+        var eventTable  = $('#table').MPTable({
+          showPercentages: true,
+        });
+        $('#property').submit(function(e) {
+          e.preventDefault();
+          propValue = $('#property input:first').val();
+          $('.confirm-text').html(
+              "Property Selector for Event A: <strong>" + propValue + 
+              "</strong><br>")
+            .css("color", "rgb(95,105,131)");
+          runQuery();
+        });
+        $('#propertyTwo').submit(function(e) {
+          e.preventDefault();
+          propValueTwo = $('#propertyTwo input:first').val();
+          $('.confirm-textTwo').html(
+              "Property Selector for Event B: <strong>" + propValueTwo + 
+              "</strong><br>")
+            .css("color", "rgb(95,105,131)");
+          runQuery();
+        });
+        
+        
+        
+        //convenience method for grabbing that datepicker value
+        getDates = function(dateSelector) {
+          return dateSelector.MPDatepicker('value')
+        }
+
+        //find interval for bar chart 'interval' param
+        getInterval = function(dates) {
+          intervalDays = Math.ceil((dates.to - dates.from) / (24 * 60 * 60 * 1000)) + 1
+          return intervalDays
+        }
+        
+        var sumPlatformDict = function(data){
+          return _.reduce(_.values(data), function(memo, num){ return memo + num; }, 0);
+        }
+        var sumDataDictsByTimeRange = function(dict1, dict2){
+          var totalDict = {}
+          var dict1Keys = _.keys(dict1)
+          var dict2Keys = _.keys(dict2)
+          console.log(dict1, dict2)
+          _.each(_.keys(dict1), function(key){
+            
+            if (key in dict1 && key in dict2){
+              if (dict1[key] != NaN && dict2[key] != NaN){
+
+                var value = dict1[key] / (dict1[key] + dict2[key]);
+                if (isNaN(value)){
+                 totalDict[key] = 0; 
+                }
+                else {
+                  totalDict[key] = Math.floor(value*100);
+                }
+              } else {
+                totalDict[key] = 0;
+              }
+            } else {
+                totalDict[key] = 0;
+            }
+            
+          })
+          console.log(totalDict)
+          return totalDict;
+        }
+
+        var runQuery = function() {
+          //obtain event, property, date range and type values
+          var eventName = eventSelect.MPEventSelect('value'),
+              eventNameTwo = eventSelectTwo.MPEventSelect('value'),
+              propNameTwo = propSelectTwo.MPPropertySelect('value'),
+              dateRange = dateSelect.MPDatepicker('value'),
+              typeName  = typeSelect.MPSelect('value');
+              
+          //set parameters for segmentation API
+          var datesOne = getDates(dateSelect);
+          var eventOne_params = $.extend({}, datesOne, {
+              'type': typeName,
+              'where': propValue
+            });
+            
+          var datesTwo = getDates(dateSelect);
+          var eventTwo_params = $.extend({}, datesOne, {
+              'type': typeName,
+              'where': propValueTwo
+            });  
+              
+          if (eventName && eventNameTwo && propNameTwo && typeName) {
+            var queryOne;
+            var queryTwo;
+            var total;
+            
+            MP.api.segment(eventName, propNameTwo, eventOne_params).done(function(resultOne) {
+              totalData = {};
+              queryOne = resultOne.values();
+              
+                  
+              MP.api.segment(eventNameTwo, propNameTwo, eventTwo_params).done(function(resultTwo) {
+                queryTwo = resultTwo.values();
+               
+                _.each(_.keys(queryOne), function(key){
+                  if (key in queryOne && key in queryTwo){
+                     var total = sumDataDictsByTimeRange(queryOne[key], queryTwo[key])
+                     totalData[key + ' : '+ eventName + '/' + eventNameTwo] = total;
+                  }                
+                    
+                  })
+                  $('.numerator').text(eventName);
+                  $('.denominator').text(eventName + '  +  ' + eventNameTwo)
+                
+                eventTable.MPTable('setData', totalData);
+                //eventGraph.MPChart('setData', totalData);
+                
+              });
+            });
+          };
+        };
+        
+        //actions when dropdowns change
+        eventSelect.on('change', function(e, eventName) {
+          propSelect.MPPropertySelect('setEvent', eventName);
+          $("#by").show();
+          runQuery();
+        });
+        eventSelectTwo.on('change', function(e, eventNameTwo) {
+          propSelectTwo.MPPropertySelect('setEvent', eventNameTwo);
+          $("#byTwo").show();
+          runQuery();
+        });
+        propSelectTwo.on('change', runQuery);
+        dateSelect.on('change', runQuery);
+        typeSelect.on('change', runQuery);
+      });
     </script>
   </body>
 </html>
