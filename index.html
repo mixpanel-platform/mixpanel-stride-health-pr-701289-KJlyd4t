@@ -12,14 +12,14 @@
         <h1 style="font-size: 18px; color: rgb(95,105,131)">Segment Your Purchase Ratio</h1><br/>
       </div><br/>
       
-      <div id="eventSelect" style="float: left;"></div>
+      <!--<div id="eventSelect" style="float: left;"></div>-->
       <div id="dateSelect" style="float: right;"></div><br/><br/>
 
       <div class="confirmation">
         <p class="confirm-text" style="color: rgb(95,105,131); font-size: 15px"></p>
       </div><br/><br/>
       
-      <div id="eventSelectTwo" style="float: left;"></div>
+      <!--<div id="eventSelectTwo" style="float: left;"></div>-->
       <div id="byTwo" class="mixpanel-platform-label" style="margin-left: 10px; display: none;">by</div>
       <div id="propSelectTwo" style="float: left;"></div>
 
@@ -51,8 +51,8 @@
             ]
         };
 
-        var eventSelect = $('#eventSelect').MPEventSelect();
-        var eventSelectTwo = $('#eventSelectTwo').MPEventSelect();
+        // var eventSelect = $('#eventSelect').MPEventSelect();
+        // var eventSelectTwo = $('#eventSelectTwo').MPEventSelect();
         var propSelect  = $('#propSelect').MPPropertySelect();
         var propSelectTwo  = $('#propSelectTwo').MPPropertySelect();
         var propValue = '';
@@ -132,8 +132,8 @@
 
         var runQuery = function() {
           //obtain event, property, date range and type values
-          var eventName = eventSelect.MPEventSelect('value'),
-              eventNameTwo = eventSelectTwo.MPEventSelect('value'),
+          var eventName = 'Purchase Complete',
+              eventNameTwo = '$custom_event:175745',
               propNameTwo = propSelectTwo.MPPropertySelect('value'),
               dateRange = dateSelect.MPDatepicker('value'),
               typeName  = typeSelect.MPSelect('value');
@@ -183,16 +183,16 @@
         };
         
         //actions when dropdowns change
-        eventSelect.on('change', function(e, eventName) {
-          propSelect.MPPropertySelect('setEvent', eventName);
-          $("#by").show();
-          runQuery();
-        });
-        eventSelectTwo.on('change', function(e, eventNameTwo) {
-          propSelectTwo.MPPropertySelect('setEvent', eventNameTwo);
-          $("#byTwo").show();
-          runQuery();
-        });
+        // eventSelect.on('change', function(e, eventName) {
+        //   propSelect.MPPropertySelect('setEvent', eventName);
+        //   $("#by").show();
+        //   runQuery();
+        // });
+        // eventSelectTwo.on('change', function(e, eventNameTwo) {
+        //   propSelectTwo.MPPropertySelect('setEvent', eventNameTwo);
+        //   $("#byTwo").show();
+        //   runQuery();
+        // });
         propSelectTwo.on('change', runQuery);
         dateSelect.on('change', runQuery);
         typeSelect.on('change', runQuery);
